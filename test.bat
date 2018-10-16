@@ -8,9 +8,9 @@ for /f "tokens=1" %%i in ('docker ps -a --filter "name=%appname%*"') do docker r
 if [%1]==[kill] goto :skiprun
 
 rem on docker CE, ensure the VM used has enough memory for the build (maybe not needed when running)
-set ce_memopt=
+set ce_memopt=-m 2GB
 docker version |findstr /C:"-ce" >nul:
-if errorlevel 0 set ce_memopt=-m 2GB
+if errorlevel 1 set ce_memopt= 
 
 echo *** Rebuild containers - first run takes a long time ***
 docker build %ce_memopt% -t %appname%_server .
