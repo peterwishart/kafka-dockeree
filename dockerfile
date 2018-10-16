@@ -1,6 +1,6 @@
 FROM microsoft/windowsservercore:latest
 
-#copy set path powershell script
+#copy set path powershell script 
 COPY Set-PathVariable.ps1 / 
 
 #get powershell
