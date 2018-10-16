@@ -26,7 +26,7 @@ Note the first 3 digits of the container id and plug into these commands to test
   set khome=/kafka_2.12-1.1.0/bin/windows/
   docker exec -i %container_id% %khome%kafka-topics.bat --create --zookeeper localhost:2181 --topic test --partitions 1 --replication-factor 1
   docker exec -i %container_id% %khome%kafka-console-producer.bat --broker-list kafka_dockeree_server:9092 --topic test 
-  docker exec -i %container_id% %khome%kafka-console-consumer.bat --broker-list kafka_dockeree_server:9092 --topic test
+  docker exec -i %container_id% %khome%kafka-console-consumer.bat --bootstrap-server kafka_dockeree_server:9092 --topic test
 </pre>
 
 You should be then able to connect to the cluster on kafka_dockeree_server:9092 and to the web management (kafka-manager) on kafka_dockeree_server:9000.
