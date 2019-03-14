@@ -1,4 +1,4 @@
-FROM microsoft/windowsservercore:latest
+FROM mcr.microsoft.com/windows/servercore:1809
 
 #copy set path powershell script 
 COPY Set-PathVariable.ps1 / 
@@ -43,7 +43,7 @@ RUN PUSHD %KAFKA_HOME% & sbt clean dist & POPD
 #package is built to C:\kafka-manager-1.3.3.15\target\universal\kafka-manager-1.3.3.15.zip
 
 ## Runtime layer ##
-FROM microsoft/windowsservercore:latest
+FROM mcr.microsoft.com/windows/servercore:1809
 
 #copy set path powershell script
 COPY Set-PathVariable.ps1 / 
@@ -65,21 +65,30 @@ RUN del \jre-8u91-windows-x64.exe
 
 #get zookeeper and kafka
 
-ENV ZK_VERSION=3.4.12
-ENV ZOOKEEPER_HOME=c:\\zookeeper-3.4.12
+ENV ZK_VERSION=3.4.13
+ENV ZOOKEEPER_HOME=c:\\zookeeper
 RUN powershell (new-object System.Net.WebClient).Downloadfile('http://mirrors.ukfast.co.uk/sites/ftp.apache.org/zookeeper/stable/zookeeper-%ZK_VERSION%.tar.gz', '\zookeeper-%ZK_VERSION%.tar.gz')
 RUN powershell -executionpolicy bypass /Set-PathVariable.ps1 -NewLocation '%ZOOKEEPER_HOME%/bin'
 RUN 7z.exe e zookeeper-%ZK_VERSION%.tar.gz 
 RUN 7z.exe x zookeeper-%ZK_VERSION%.tar
 RUN DEL \zookeeper-%ZK_VERSION%.tar.gz 
 RUN DEL \zookeeper-%ZK_VERSION%.tar
+RUN REN \zookeeper-%ZK_VERSION% zookeeper
 
-RUN powershell (new-object System.Net.WebClient).Downloadfile('http://mirrors.ukfast.co.uk/sites/ftp.apache.org/kafka/1.1.0/kafka_2.12-1.1.0.tgz', '\kafka_2.12-1.1.0.tgz')
-ENV KAFKA_HOME=c:\\kafka_2.12-1.1.0
-RUN 7z.exe e kafka_2.12-1.1.0.tgz
-RUN 7z.exe x kafka_2.12-1.1.0.tar 
-RUN DEL \kafka_2.12-1.1.0.tgz
-RUN DEL \kafka_2.12-1.1.0.tar
+#kafka releases are stored under a folder for the SBT version
+#e.g. http://mirrors.ukfast.co.uk/sites/ftp.apache.org/kafka/1.1.1/kafka_2.12-1.1.1.tgz
+
+ENV K_SBT_VER=2.1.0
+ENV K_VER=2.12
+ENV K_NAME=kafka_${K_VER}-${K_SBT_VER}
+ENV KAFKA_HOME=c:\\${K_NAME}
+
+RUN powershell (new-object System.Net.WebClient).Downloadfile('http://mirrors.ukfast.co.uk/sites/ftp.apache.org/kafka/%K_SBT_VER%/%K_NAME%.tgz', '\%K_NAME%.tgz')
+
+RUN 7z.exe e %K_NAME%.tgz
+RUN 7z.exe x %K_NAME%.tar 
+RUN DEL \%K_NAME%.tgz
+RUN DEL \%K_NAME%.tar
 
 #copy built kafka-manager from stage 0
 COPY --from=0 /kafka-manager-1.3.3.15/target/universal/kafka-manager-1.3.3.15.zip /
@@ -88,9 +97,14 @@ RUN powershell -executionpolicy bypass /Set-PathVariable.ps1 -NewLocation '%KAFK
 RUN 7z.exe x kafka-manager-1.3.3.15.zip
 RUN DEL kafka-manager-1.3.3.15.zip
 
+#todo replace kafka home dir in server.properties
+#todo replace zk data folder in zoo.cfg
 #configure and run services
-COPY conf/zookeeper/zoo.cfg c:/zookeeper-3.4.12/conf/
-COPY conf/kafka/server.properties c:/kafka_2.12-1.1.0/config/
+COPY conf/zookeeper/zoo.cfg c:/zookeeper/conf/
+
+COPY conf/kafka/server.properties ${KAFKA_HOME}/config/
+RUN powershell "((Get-Content -path %KAFKA_HOME%/config/server.properties -Raw) -replace '--k_name--','%K_NAME%') | Set-Content -Path %KAFKA_HOME%/config/server.properties"
+
 COPY conf/kafka-manager/application.conf c:/kafka-manager-1.3.3.15/conf
 COPY bootstrap.ps1 /
 
