@@ -78,7 +78,7 @@ RUN REN \zookeeper-%ZK_VERSION% zookeeper
 #kafka releases are stored under a folder for the SBT version
 #e.g. http://mirrors.ukfast.co.uk/sites/ftp.apache.org/kafka/1.1.1/kafka_2.12-1.1.1.tgz
 
-ENV K_SBT_VER=2.1.1
+ENV K_SBT_VER=2.2.0
 ENV K_VER=2.12
 ENV K_NAME=kafka_${K_VER}-${K_SBT_VER}
 ENV KAFKA_HOME=c:\\${K_NAME}
