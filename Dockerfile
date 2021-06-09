@@ -68,7 +68,7 @@ RUN del \jre-8u91-windows-x64.exe
 
 #get zookeeper and kafka
 
-ENV ZK_VERSION=3.5.8
+ENV ZK_VERSION=3.6.3
 ENV ZOOKEEPER_HOME=c:\\zookeeper
 RUN powershell (new-object System.Net.WebClient).Downloadfile('http://mirrors.ukfast.co.uk/sites/ftp.apache.org/zookeeper/stable/apache-zookeeper-%ZK_VERSION%-bin.tar.gz', '\zookeeper-%ZK_VERSION%.tar.gz')
 RUN 7z.exe e zookeeper-%ZK_VERSION%.tar.gz 
@@ -81,7 +81,7 @@ RUN powershell -executionpolicy bypass /Set-PathVariable.ps1 -NewLocation '%ZOOK
 #kafka releases are stored under a folder for the SBT version
 #e.g. http://mirrors.ukfast.co.uk/sites/ftp.apache.org/kafka/1.1.1/kafka_2.12-1.1.1.tgz
 
-ENV K_SBT_VER=2.2.2
+ENV K_SBT_VER=2.6.2
 ENV K_VER=2.12
 ENV K_NAME=kafka_${K_VER}-${K_SBT_VER}
 ENV KAFKA_HOME=c:\\kafka
